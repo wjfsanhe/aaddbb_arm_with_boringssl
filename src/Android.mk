@@ -5,7 +5,7 @@
 
 LOCAL_PATH:= $(call my-dir)
 
-include $(LOCAL_PATH)/../platform_tools_tool_version.mk
+#include $(LOCAL_PATH)/../platform_tools_tool_version.mk
 
 adb_host_sanitize :=
 adb_target_sanitize :=
@@ -168,7 +168,7 @@ LOCAL_STATIC_LIBRARIES_darwin := libusb
 LOCAL_C_INCLUDES_windows := development/host/windows/usb/api/
 LOCAL_MULTILIB := first
 
-include $(BUILD_HOST_STATIC_LIBRARY)
+#include $(BUILD_HOST_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
@@ -198,7 +198,7 @@ LOCAL_SRC_FILES := diagnose_usb.cpp
 # Even though we're building a static library (and thus there's no link step for
 # this to take effect), this adds the includes to our path.
 LOCAL_STATIC_LIBRARIES := libbase
-include $(BUILD_HOST_STATIC_LIBRARY)
+#include $(BUILD_HOST_STATIC_LIBRARY)
 
 # adb_test
 # =========================================================
@@ -277,7 +277,10 @@ LOCAL_CFLAGS += \
     $(ADB_COMMON_CFLAGS) \
     -D_GNU_SOURCE \
     -DADB_HOST=1 \
-
+	-I/disk/B/moon/adb/arm64/arm_adb/lib/base/include\
+	-std=c++11 \
+	-I/disk/B/moon/adb/arm64/arm_adb/lib/libcutils/include\
+	-I/disk/B/moon/adb/arm64/arm_adb/include
 LOCAL_CFLAGS_windows := \
     $(ADB_COMMON_windows_CFLAGS)
 
@@ -309,6 +312,7 @@ LOCAL_STATIC_LIBRARIES_linux := libcutils
 LOCAL_STATIC_LIBRARIES_darwin += libusb
 LOCAL_STATIC_LIBRARIES_linux += libusb
 
+APP_STL := stlport_static
 LOCAL_CXX_STL := libc++_static
 
 # Don't add anything here, we don't want additional shared dependencies
@@ -316,7 +320,7 @@ LOCAL_CXX_STL := libc++_static
 # will violate ODR
 LOCAL_SHARED_LIBRARIES :=
 
-include $(BUILD_HOST_EXECUTABLE)
+include $(BUILD_EXECUTABLE)
 
 $(call dist-for-goals,dist_files sdk win_sdk,$(LOCAL_BUILT_MODULE))
 ifdef HOST_CROSS_OS
@@ -385,7 +389,7 @@ LOCAL_STATIC_LIBRARIES := \
     libmdnssd \
     libdebuggerd_handler \
 
-include $(BUILD_EXECUTABLE)
+#include $(BUILD_EXECUTABLE)
 
 # adb integration test
 # =========================================================
