@@ -206,7 +206,7 @@ LOCAL_STATIC_LIBRARIES := libbase
 include $(CLEAR_VARS)
 LOCAL_MODULE := adb_test
 LOCAL_MODULE_HOST_OS := darwin linux windows
-LOCAL_CFLAGS := -DADB_HOST=1 $(LIBADB_CFLAGS)
+LOCAL_CFLAGS := -DADB_HOST=1 $(LIBADB_CFLAGS)  -std=c++11
 LOCAL_CFLAGS_windows := $(LIBADB_windows_CFLAGS)
 LOCAL_CFLAGS_linux := $(LIBADB_linux_CFLAGS)
 LOCAL_CFLAGS_darwin := $(LIBADB_darwin_CFLAGS)
@@ -246,7 +246,7 @@ LOCAL_STATIC_LIBRARIES_windows := AdbWinApi
 
 LOCAL_MULTILIB := first
 
-include $(BUILD_HOST_NATIVE_TEST)
+#include $(BUILD_HOST_NATIVE_TEST)
 
 # adb host tool
 # =========================================================
@@ -278,9 +278,11 @@ LOCAL_CFLAGS += \
     -D_GNU_SOURCE \
     -DADB_HOST=1 \
 	-I/disk/B/moon/adb/arm64/arm_adb/lib/base/include\
-	-std=c++11 \
+	-std=c++11 -O3 \
 	-I/disk/B/moon/adb/arm64/arm_adb/lib/libcutils/include\
-	-I/disk/B/moon/adb/arm64/arm_adb/include
+	-I/disk/B/moon/adb/arm64/arm_adb/include \
+	-I/usr/local/ssl/android-24/include\
+	-I/disk/B/moon/adb/arm64/openssl-1.0.1e/include
 LOCAL_CFLAGS_windows := \
     $(ADB_COMMON_windows_CFLAGS)
 
@@ -290,7 +292,7 @@ LOCAL_CFLAGS_linux := \
 LOCAL_CFLAGS_darwin := \
     $(ADB_COMMON_darwin_CFLAGS) \
     -Wno-sizeof-pointer-memaccess -Wno-unused-parameter \
-
+#LOCAL_CLANG := true
 LOCAL_MODULE := adb
 LOCAL_MODULE_TAGS := debug
 LOCAL_MODULE_HOST_OS := darwin linux windows

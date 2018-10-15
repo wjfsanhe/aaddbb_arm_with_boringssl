@@ -42,5 +42,23 @@ constexpr std::chrono::duration<long double, std::milli> operator"" ms(long doub
     return std::chrono::duration<long double, std::milli>(ms);
 }
 #else
-using namespace std::chrono_literals;
+//using namespace std::chrono_literals;
+
+#pragma GCC system_header
+
+constexpr std::chrono::seconds operator"" s(unsigned long long s) {
+    return std::chrono::seconds(s);
+}
+
+constexpr std::chrono::duration<long double> operator"" s(long double s) {
+    return std::chrono::duration<long double>(s);
+}
+
+constexpr std::chrono::milliseconds operator"" ms(unsigned long long ms) {
+    return std::chrono::milliseconds(ms);
+}
+
+constexpr std::chrono::duration<long double, std::milli> operator"" ms(long double ms) {
+    return std::chrono::duration<long double, std::milli>(ms);
+}
 #endif

@@ -144,7 +144,7 @@ class BugreportStandardStreamsCallback : public StandardStreamsCallbackInterface
             //
             // BUGZ_PROGRESS_PREFIX:PROGRESS/TOTAL
             //
-            size_t idx1 = line.rfind(BUGZ_PROGRESS_PREFIX) + strlen(BUGZ_PROGRESS_PREFIX);
+            /*size_t idx1 = line.rfind(BUGZ_PROGRESS_PREFIX) + strlen(BUGZ_PROGRESS_PREFIX);
             size_t idx2 = line.rfind(BUGZ_PROGRESS_SEPARATOR);
             int progress = std::stoi(line.substr(idx1, (idx2 - idx1)));
             int total = std::stoi(line.substr(idx2 + 1));
@@ -152,9 +152,10 @@ class BugreportStandardStreamsCallback : public StandardStreamsCallbackInterface
             if (progress_percentage != 0 && progress_percentage <= last_progress_percentage_) {
                 // Ignore.
                 return;
-            }
+            
             last_progress_percentage_ = progress_percentage;
-            br_->UpdateProgress(line_message_, progress_percentage);
+            br_->UpdateProgress(line_message_, progress_percentage);*/
+	    fprintf(stderr, "nothing done ,fix compile error");
         } else {
             invalid_lines_.push_back(line);
         }
