@@ -165,7 +165,7 @@ static std::string hash_key(RSA* key) {
     std::string result;
     result.resize(SHA256_DIGEST_LENGTH);
     SHA256(pubkey, len, reinterpret_cast<unsigned char*>(&result[0]));
-    OPENSSL_free(pubkey);
+    free(pubkey);
     return result;
 }
 

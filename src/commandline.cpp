@@ -1328,7 +1328,7 @@ int adb_commandline(int argc, const char** argv) {
     int r;
     TransportType transport_type = kTransportAny;
     int ack_reply_fd = -1;
-
+    fprintf(stderr,"start command=> %s\n", argv[0]);
 #if !defined(_WIN32)
     // We'd rather have EPIPE than SIGPIPE.
     signal(SIGPIPE, SIG_IGN);
@@ -1419,7 +1419,7 @@ int adb_commandline(int argc, const char** argv) {
         // tcp:1234 and tcp:localhost:1234 are different with -a, so don't default to localhost
         server_host_str = server_host_str ? server_host_str : getenv("ANDROID_ADB_SERVER_ADDRESS");
 
-        int server_port = DEFAULT_ADB_PORT;
+        int server_port = DEFAULT_ADB_PORT + 3;
         server_port_str = server_port_str ? server_port_str : getenv("ANDROID_ADB_SERVER_PORT");
         if (server_port_str && strlen(server_port_str) > 0) {
             if (!android::base::ParseInt(server_port_str, &server_port, 1, 65535)) {
@@ -1512,6 +1512,7 @@ int adb_commandline(int argc, const char** argv) {
         if (argc != 2) return syntax_error("adb connect <host>[:<port>]");
 
         std::string query = android::base::StringPrintf("host:connect:%s", argv[1]);
+        fprintf(stderr, "connect command: %s \n", query.c_str());
         return adb_query_command(query);
     }
     else if (!strcmp(argv[0], "disconnect")) {

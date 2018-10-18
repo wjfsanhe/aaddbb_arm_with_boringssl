@@ -47,9 +47,10 @@
 #include "adb.h"
 #include "transport.h"
 #include "usb.h"
+#include "../sysdeps/chrono.h"
 
-using namespace std::chrono_literals;
-using namespace std::literals;
+//using namespace std::chrono_literals;
+//using namespace std::literals;
 
 /* usb scan debugging is waaaay too verbose */
 #define DBGX(x...)
@@ -146,7 +147,6 @@ static void find_usb_device(const std::string& base,
             struct usb_endpoint_descriptor *ep1, *ep2;
             unsigned zero_mask = 0;
             size_t max_packet_size = 0;
-            unsigned vid, pid;
 
             if (contains_non_digit(de->d_name)) continue;
 
@@ -178,9 +178,10 @@ static void find_usb_device(const std::string& base,
                 continue;
             }
 
-            vid = device->idVendor;
-            pid = device->idProduct;
-            DBGX("[ %s is V:%04x P:%04x ]\n", dev_name.c_str(), vid, pid);
+            //unsigned vid, pid;
+            //vid = device->idVendor;
+            //pid = device->idProduct;
+            //DBGX("[ %s is V:%04x P:%04x ]\n", dev_name.c_str(), vid, pid);
 
                 // should have config descriptor next
             config = (struct usb_config_descriptor *)bufptr;

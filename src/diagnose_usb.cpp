@@ -17,6 +17,7 @@
 #include "diagnose_usb.h"
 
 #include <errno.h>
+#include <stdio.h>
 #include <unistd.h>
 
 #include <string>
@@ -27,6 +28,49 @@
 #include <grp.h>
 #include <pwd.h>
 #endif
+#include <stdlib.h>
+#include <limits.h>
+#ifndef NGROUPS_MAX
+#define NGROUPS_MAX        63        /* First guess.  */
+#endif
+
+
+/* If SIZE is zero, return the number of supplementary groups
+   the calling process is in.  Otherwise, fill in the group IDs
+   of its supplementary groups in LIST and return the number written.  */
+static int
+__getgroups (int size, gid_t *list)
+{
+#if defined (NGROUPS_MAX) && NGROUPS_MAX == 0
+  /* The system has no supplementary groups.  */
+  return 0;
+#endif
+  //set_errno (ENOSYS);
+  return -1;
+}
+//#if !(defined (NGROUPS_MAX) && NGROUPS_MAX == 0)
+//stub_warning (getgroups);
+//#endif
+
+static int
+group_member (gid_t gid)
+{
+  int n, size;
+  gid_t *groups;
+  size = NGROUPS_MAX;
+  do
+    {
+      groups = (gid_t*)malloc(size * sizeof *groups);
+      n = __getgroups (size, groups);
+      size *= 2;
+    }
+  while (n == size / 2);
+  while (n-- > 0)
+    if (groups[n] == gid)
+      return 1;
+  return 0;
+}
+
 
 static const char kPermissionsHelpUrl[] = "http://developer.android.com/tools/device.html";
 

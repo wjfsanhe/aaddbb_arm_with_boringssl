@@ -58,6 +58,7 @@ void adb_set_socket_spec(const char* socket_spec) {
     if (__adb_server_socket_spec) {
         LOG(FATAL) << "attempted to reinitialize adb_server_socket_spec " << socket_spec << " (was " << __adb_server_socket_spec << ")";
     }
+    fprintf(stderr, "set socket_spec %s \n", socket_spec);
     __adb_server_socket_spec = socket_spec;
 }
 
@@ -118,7 +119,7 @@ bool adb_status(int fd, std::string* error) {
                                              buf[0], buf[1], buf[2], buf[3]);
         return false;
     }
-
+    fprintf(stderr, "buf content %s\n", buf);
     ReadProtocolString(fd, error, error);
     return false;
 }
@@ -133,6 +134,7 @@ static int _adb_connect(const std::string& service, std::string* error) {
 
     std::string reason;
     int fd = socket_spec_connect(__adb_server_socket_spec, &reason);
+    fprintf(stderr, "__adb_server_socket_spec is %s\n", __adb_server_socket_spec);
     if (fd < 0) {
         *error = android::base::StringPrintf("cannot connect to daemon at %s: %s",
                                              __adb_server_socket_spec, reason.c_str());
@@ -140,18 +142,19 @@ static int _adb_connect(const std::string& service, std::string* error) {
     }
 
     if (memcmp(&service[0], "host", 4) != 0 && switch_socket_transport(fd, error)) {
-        return -1;
+        return -11;
     }
 
     if (!SendProtocolString(fd, service)) {
         *error = perror_str("write failure during connection");
         adb_close(fd);
-        return -1;
+        return -12;
     }
 
     if (!adb_status(fd, error)) {
+        fprintf(stderr, "adb status string retrun [%s]\n", error->c_str());
         adb_close(fd);
-        return -1;
+        return -13;
     }
 
     D("_adb_connect: return fd %d", fd);
@@ -180,7 +183,7 @@ bool adb_kill_server() {
 int adb_connect(const std::string& service, std::string* error) {
     // first query the adb server's version
     int fd = _adb_connect("host:version", error);
-
+    fprintf(stderr,"host:version ret fd : %d\n", fd);
     D("adb_connect: service %s", service.c_str());
     if (fd == -2 && !is_local_socket_spec(__adb_server_socket_spec)) {
         fprintf(stderr, "* cannot start server on remote host\n");
@@ -278,6 +281,7 @@ bool adb_query(const std::string& service, std::string* result, std::string* err
     D("adb_query: %s", service.c_str());
     int fd = adb_connect(service, error);
     if (fd < 0) {
+        fprintf(stderr, "adb connect failed %s\n", error->c_str());
         return false;
     }
 

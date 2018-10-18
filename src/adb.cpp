@@ -943,6 +943,7 @@ int launch_server(const std::string& socket_spec) {
             fprintf(stderr, "could not read ok from ADB Server, errno = %d\n", saved_errno);
             return -1;
         }
+        fprintf(stderr, "adb_read ret %d , %s\n", ret, temp);
         if (ret != 3 || temp[0] != 'O' || temp[1] != 'K' || temp[2] != '\n') {
             ReportServerStartupFailure(pid);
             return -1;

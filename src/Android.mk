@@ -45,6 +45,49 @@ ADB_COMMON_windows_CFLAGS := \
 # divergence makes this difficult to do all at once. For now, we will start
 # small by moving common files into a static library. Hopefully some day we can
 # get enough of adb in here that we no longer need minadb. https://b/17626262
+
+#LIB_OPENSSL_SRC_FILES := \
+	../boringssl/src/crypto/base64/base64.cpp\
+	../boringssl/src/crypto/evp/evp.cpp\
+	../boringssl/src/crypto/bn/bn.cpp\
+	../boringssl/src/crypto/rsa/rsa.cpp\
+	../boringssl/src/crypto/pem/pem_pkey.cpp\
+	../boringssl/src/crypto/pem/pem_all.cpp\
+	../boringssl/src/crypto/x509/x_pubkey.cpp\
+	../boringssl/src/crypto/bn/shift.cpp\
+	../boringssl/src/crypto/bn/ctx.cpp\
+	../boringssl/src/crypto/err/err.cpp\
+	../boringssl/src/crypto/thread_pthread.cpp\
+	../boringssl/src/crypto/asn1/tasn_utl.cpp\
+	../boringssl/src/crypto/asn1/tasn_fre.cpp\
+	../boringssl/src/crypto/stack/stack.cpp\
+	../boringssl/src/crypto/asn1/asn1_lib.cpp\
+	../boringssl/src/crypto/asn1/a_object.cpp\
+	../boringssl/src/crypto/obj/obj.cpp
+
+LIBBASE_SRC_FILES := \
+	../lib/libcutils/socket_inaddr_any_server_unix.cpp \
+	../lib/libcutils/sockets.cpp \
+	../lib/libcutils/socket_local_server_unix.cpp \
+	../lib/libcutils/socket_local_client_unix.cpp \
+	../lib/libcutils/socket_network_client_unix.cpp \
+	../lib/base/strings.cpp \
+	../lib/base/file.cpp \
+	../lib/base/stringprintf.cpp\
+	../lib/base/logging.cpp\
+	../lib/base/parsenetaddress.cpp \
+	../src/sysdeps/posix/network.cpp \
+	../src/sysdeps_unix.cpp\
+	../src/client/usb_dispatch.cpp \
+	./client/usb_linux.cpp\
+	./adb_auth_host.cpp\
+	./diagnose_usb.cpp \
+	./transport_mdns.cpp\
+	../mdnsresponder/mDNSShared/dnssd_clientstub.cpp\
+	../mdnsresponder/mDNSShared/dnssd_ipc.cpp\
+	../lib/libcrypto_utils/android_pubkey.cpp
+
+
 LIBADB_SRC_FILES := \
     adb.cpp \
     adb_io.cpp \
@@ -168,7 +211,7 @@ LOCAL_STATIC_LIBRARIES_darwin := libusb
 LOCAL_C_INCLUDES_windows := development/host/windows/usb/api/
 LOCAL_MULTILIB := first
 
-#include $(BUILD_HOST_STATIC_LIBRARY)
+#include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
@@ -198,7 +241,7 @@ LOCAL_SRC_FILES := diagnose_usb.cpp
 # Even though we're building a static library (and thus there's no link step for
 # this to take effect), this adds the includes to our path.
 LOCAL_STATIC_LIBRARIES := libbase
-#include $(BUILD_HOST_STATIC_LIBRARY)
+#include $(BUILD_STATIC_LIBRARY)
 
 # adb_test
 # =========================================================
@@ -246,6 +289,35 @@ LOCAL_STATIC_LIBRARIES_windows := AdbWinApi
 
 LOCAL_MULTILIB := first
 
+####################################################
+###  static library
+include $(CLEAR_VARS)
+
+# 我们将连接已编译好的my_blocks模块
+LOCAL_MODULE    := openssl_static_libs
+
+# 填写源文件名的时候，要把静态库或动态库的文件名填写完整。
+# $(TARGET_ARCH_ABI)/ 表示将不同架构下的库文件存放到相应架构目录下
+LOCAL_SRC_FILES := ../boringssl/./obj/local/arm64-v8a/libssl_static.a
+
+
+# 用于预构建静态库（后面可被连接）
+include $(PREBUILT_STATIC_LIBRARY)
+
+
+LOCAL_MODULE    := crypt_static_libs
+
+# 填写源文件名的时候，要把静态库或动态库的文件名填写完整。
+# $(TARGET_ARCH_ABI)/ 表示将不同架构下的库文件存放到相应架构目录下
+LOCAL_SRC_FILES := ../boringssl/./obj/local/arm64-v8a/libcrypto_static.a
+
+
+# 用于预构建静态库（后面可被连接）
+include $(PREBUILT_STATIC_LIBRARY)
+
+
+
+
 #include $(BUILD_HOST_NATIVE_TEST)
 
 # adb host tool
@@ -263,6 +335,8 @@ LOCAL_STATIC_LIBRARIES_windows := AdbWinApi
 LOCAL_REQUIRED_MODULES_windows := AdbWinApi AdbWinUsbApi
 
 LOCAL_SRC_FILES := \
+	$(LIBADB_SRC_FILES)\
+	$(LIBBASE_SRC_FILES)\
     adb_client.cpp \
     bugreport.cpp \
     client/main.cpp \
@@ -276,13 +350,19 @@ LOCAL_SRC_FILES := \
 LOCAL_CFLAGS += \
     $(ADB_COMMON_CFLAGS) \
     -D_GNU_SOURCE \
+    -DDONT_USE_LIBUSB \
+    -DNOT_HAVE_SA_LEN \
     -DADB_HOST=1 \
 	-I/disk/B/moon/adb/arm64/arm_adb/lib/base/include\
 	-std=c++11 -O3 \
 	-I/disk/B/moon/adb/arm64/arm_adb/lib/libcutils/include\
 	-I/disk/B/moon/adb/arm64/arm_adb/include \
-	-I/usr/local/ssl/android-24/include\
-	-I/disk/B/moon/adb/arm64/openssl-1.0.1e/include
+	-I../lib/libcrypto_utils/include\
+	-I../mdnsresponder/mDNSShared \
+	-I../boringssl/src/include
+#-I/disk/B/moon/adb/arm64/openssl-1.0.1e/include	
+#-I/usr/local/ssl/android-24/include\
+#	-I/home/wangjf/Android/Sdk/ndk-bundle/sysroot/usr/include
 LOCAL_CFLAGS_windows := \
     $(ADB_COMMON_windows_CFLAGS)
 
@@ -298,7 +378,7 @@ LOCAL_MODULE_TAGS := debug
 LOCAL_MODULE_HOST_OS := darwin linux windows
 
 LOCAL_SANITIZE := $(adb_host_sanitize)
-LOCAL_STATIC_LIBRARIES := \
+#LOCAL_STATIC_LIBRARIES := \
     libadb \
     libbase \
     libcrypto_utils \
@@ -306,6 +386,8 @@ LOCAL_STATIC_LIBRARIES := \
     libdiagnose_usb \
     liblog \
     libmdnssd \
+
+LOCAL_STATIC_LIBRARIES := openssl_static_libs crypt_static_libs
 
 # Don't use libcutils on Windows.
 LOCAL_STATIC_LIBRARIES_darwin := libcutils
