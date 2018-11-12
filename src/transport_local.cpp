@@ -33,6 +33,7 @@
 #include <android-base/parsenetaddress.h>
 #include <android-base/stringprintf.h>
 #include <cutils/sockets.h>
+#include <cutils/log.h>
 
 #if !ADB_HOST
 #include <android-base/properties.h>
@@ -423,7 +424,7 @@ void local_init(int port)
     func = use_qemu_goldfish() ? qemu_socket_thread : server_socket_thread;
     debug_name = "server";
 #endif // !ADB_HOST
-
+    ALOGD("transport: local %s init", debug_name);
     D("transport: local %s init", debug_name);
     std::thread(func, port).detach();
 }

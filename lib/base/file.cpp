@@ -27,6 +27,7 @@
 #include <mutex>
 #include <string.h>
 #include <vector>
+#include <stdlib.h>
 
 #include "android-base/logging.h"
 #include "android-base/macros.h"  // For TEMP_FAILURE_RETRY on Darwin.

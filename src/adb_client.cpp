@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #define TRACE_TAG ADB
+
 
 #include "sysdeps.h"
 #include "adb_client.h"
@@ -43,6 +43,7 @@
 #include "adb_utils.h"
 #include "socket_spec.h"
 #include "sysdeps/chrono.h"
+#include <cutils/log.h>
 
 static TransportType __adb_transport = kTransportAny;
 static const char* __adb_serial = NULL;
@@ -163,15 +164,19 @@ static int _adb_connect(const std::string& service, std::string* error) {
 
 bool adb_kill_server() {
     D("adb_kill_server");
+    ALOGD("adb kill server\n");
     std::string reason;
     int fd = socket_spec_connect(__adb_server_socket_spec, &reason);
     if (fd < 0) {
+        ALOGD("cannot connect to daemon at %s: %s\n", __adb_server_socket_spec,
+                              reason.c_str());
         fprintf(stderr, "cannot connect to daemon at %s: %s\n", __adb_server_socket_spec,
                 reason.c_str());
         return true;
     }
 
     if (!SendProtocolString(fd, "host:kill")) {
+        ALOGD("error: write failure during connection: %s\n", strerror(errno));
         fprintf(stderr, "error: write failure during connection: %s\n", strerror(errno));
         return false;
     }
@@ -185,14 +190,18 @@ int adb_connect(const std::string& service, std::string* error) {
     int fd = _adb_connect("host:version", error);
     fprintf(stderr,"host:version ret fd : %d\n", fd);
     D("adb_connect: service %s", service.c_str());
+    ALOGD("adb_connect: service %s", service.c_str());
     if (fd == -2 && !is_local_socket_spec(__adb_server_socket_spec)) {
+        ALOGD("* cannot start server on remote host\n");
         fprintf(stderr, "* cannot start server on remote host\n");
         // error is the original network connection error
         return fd;
     } else if (fd == -2) {
+         ALOGD("* daemon not running; starting now at %s\n", __adb_server_socket_spec);
         fprintf(stderr, "* daemon not running; starting now at %s\n", __adb_server_socket_spec);
     start_server:
         if (launch_server(__adb_server_socket_spec)) {
+            ALOGD("* failed to start daemon\n");
             fprintf(stderr, "* failed to start daemon\n");
             // launch_server() has already printed detailed error info, so just
             // return a generic error string about the overall adb_connect()
@@ -200,6 +209,7 @@ int adb_connect(const std::string& service, std::string* error) {
             *error = "cannot connect to daemon";
             return -1;
         } else {
+            ALOGD("* daemon started successfully\n");
             fprintf(stderr, "* daemon started successfully\n");
         }
         // The server will wait until it detects all of its connected devices before acking.
@@ -234,6 +244,8 @@ int adb_connect(const std::string& service, std::string* error) {
         }
 
         if (version != ADB_SERVER_VERSION) {
+            ALOGD("adb server version (%d) doesn't match this client (%d); killing...\n",
+                                      version, ADB_SERVER_VERSION);
             fprintf(stderr, "adb server version (%d) doesn't match this client (%d); killing...\n",
                     version, ADB_SERVER_VERSION);
             adb_kill_server();
@@ -248,10 +260,12 @@ int adb_connect(const std::string& service, std::string* error) {
 
     fd = _adb_connect(service, error);
     if (fd == -1) {
+        ALOGD("_adb_connect error: %s", error->c_str());
         D("_adb_connect error: %s", error->c_str());
     } else if(fd == -2) {
         fprintf(stderr, "* daemon still not running\n");
     }
+    ALOGD("adb_connect: return fd %d", fd);
     D("adb_connect: return fd %d", fd);
 
     return fd;

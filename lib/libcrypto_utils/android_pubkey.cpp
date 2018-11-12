@@ -37,16 +37,16 @@
 // struct.
 
 
-#define BN_ULONG	unsigned int
-struct bignum_st {
-  BN_ULONG *d; /* Pointer to an array of 'BN_BITS2' bit chunks in little-endian
-                  order. */
-  int top;   /* Index of last used element in |d|, plus one. */
-  int dmax;  /* Size of |d|, in words. */
-  int neg;   /* one if the number is negative */
-  int flags; /* bitmask of BN_FLG_* values */
-};
-typedef struct bignum_st BIGNUM;
+///*#define BN_ULONG	unsigned int
+//struct bignum_st {
+//  BN_ULONG *d; /* Pointer to an array of 'BN_BITS2' bit chunks in little-endian
+//                  order. */
+//  int top;   /* Index of last used element in |d|, plus one. */
+//  int dmax;  /* Size of |d|, in words. */
+//  int neg;   //* one if the number is negative */
+//  int flags; /* bitmask of BN_FLG_* values */
+//};
+//typedef struct bignum_st BIGNUM;*/
 
 
 
@@ -124,6 +124,7 @@ cleanup:
   }
   return ret;
 }
+
 
 static bool android_pubkey_encode_bignum(const BIGNUM* num, uint8_t* buffer) {
   if (!BN_bn2bin_padded(buffer, ANDROID_PUBKEY_MODULUS_SIZE, num)) {

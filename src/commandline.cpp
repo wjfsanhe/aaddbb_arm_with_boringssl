@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #define TRACE_TAG ADB
 
 #include "sysdeps.h"
@@ -41,6 +40,7 @@
 #include <android-base/parseint.h>
 #include <android-base/stringprintf.h>
 #include <android-base/strings.h>
+#include <cutils/log.h>
 
 #if !defined(_WIN32)
 #include <signal.h>
@@ -61,6 +61,7 @@
 #include "services.h"
 #include "shell_service.h"
 #include "sysdeps/chrono.h"
+
 
 static int install_app(TransportType t, const char* serial, int argc, const char** argv);
 static int install_multiple_app(TransportType t, const char* serial, int argc, const char** argv);
@@ -1343,19 +1344,26 @@ int adb_commandline(int argc, const char** argv) {
 
     while (argc > 0) {
         if (!strcmp(argv[0],"server")) {
+            ALOGD("will staert adb as server\n");
             is_server = 1;
         } else if (!strcmp(argv[0],"nodaemon")) {
             no_daemon = 1;
         } else if (!strcmp(argv[0], "fork-server")) {
             /* this is a special flag used only when the ADB client launches the ADB Server */
+            ALOGD("will launch one deamon\n");
             is_daemon = 1;
         } else if (!strcmp(argv[0], "--reply-fd")) {
-            if (argc < 2) return syntax_error("--reply-fd requires an argument");
+            if (argc < 2) {
+                ALOGD("--reply-fd requires an argument");
+                return syntax_error("--reply-fd requires an argument");
+            }
             const char* reply_fd_str = argv[1];
             argc--;
             argv++;
+            ALOGD("ack_reply_fd is %s,it's pipe fd\n", reply_fd_str);
             ack_reply_fd = strtol(reply_fd_str, nullptr, 10);
             if (!_is_valid_ack_reply_fd(ack_reply_fd)) {
+                ALOGD("adb: invalid reply fd \"%s\"\n", reply_fd_str);
                 fprintf(stderr, "adb: invalid reply fd \"%s\"\n", reply_fd_str);
                 return 1;
             }
@@ -1456,11 +1464,14 @@ int adb_commandline(int argc, const char** argv) {
     if (is_server) {
         if (no_daemon || is_daemon) {
             if (is_daemon && (ack_reply_fd == -1)) {
+                ALOGD( "reply fd for adb server to client communication not specified.\n");
                 fprintf(stderr, "reply fd for adb server to client communication not specified.\n");
                 return 1;
             }
+            ALOGD( "adb_server_main will do real launch operation\n");
             r = adb_server_main(is_daemon, server_socket_str, ack_reply_fd);
         } else {
+
             r = launch_server(server_socket_str);
         }
         if (r) {
@@ -1767,6 +1778,7 @@ int adb_commandline(int argc, const char** argv) {
         const int result = adb_connect("host:start-server", &error);
         if (result < 0) {
             fprintf(stderr, "error: %s\n", error.c_str());
+            ALOGD("error: %s\n", error.c_str());
         }
         return result;
     }

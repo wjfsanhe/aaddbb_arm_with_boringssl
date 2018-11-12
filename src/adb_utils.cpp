@@ -32,6 +32,7 @@
 #include <android-base/parseint.h>
 #include <android-base/stringprintf.h>
 #include <android-base/strings.h>
+#include <cutils/log.h>
 
 #include "adb.h"
 #include "adb_trace.h"
@@ -57,10 +58,12 @@ constexpr char kNullFileName[] = "/dev/null";
 void close_stdin() {
     int fd = unix_open(kNullFileName, O_RDONLY);
     if (fd == -1) {
+        ALOGD("failed to open %s", kNullFileName);
         fatal_errno("failed to open %s", kNullFileName);
     }
 
     if (TEMP_FAILURE_RETRY(dup2(fd, STDIN_FILENO)) == -1) {
+        ALOGD("failed to redirect stdin to %s", kNullFileName);
         fatal_errno("failed to redirect stdin to %s", kNullFileName);
     }
     unix_close(fd);
@@ -310,7 +313,7 @@ std::string GetLogFilePath() {
     return temp_path_utf8 + log_name;
 #else
     const char* tmp_dir = getenv("TMPDIR");
-    if (tmp_dir == nullptr) tmp_dir = "/tmp";
+    if (tmp_dir == nullptr) tmp_dir = "/data/local/tmp/";
     return android::base::StringPrintf("%s/adb.%u.log", tmp_dir, getuid());
 #endif
 }

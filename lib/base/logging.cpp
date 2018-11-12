@@ -46,7 +46,7 @@
 // Headers for LogMessage::LogLine.
 #ifdef __ANDROID__
 #include <log/log.h>
-#include <android/set_abort_message.h>
+//#include <android/set_abort_message.h>
 #else
 #include <sys/types.h>
 #include <unistd.h>
@@ -209,7 +209,7 @@ void StderrLogger(LogId, LogSeverity severity, const char*, const char* file,
 
 void DefaultAborter(const char* abort_message) {
 #ifdef __ANDROID__
-  android_set_abort_message(abort_message);
+  //android_set_abort_message(abort_message);
 #else
   UNUSED(abort_message);
 #endif
@@ -242,13 +242,13 @@ void LogdLogger::operator()(LogId id, LogSeverity severity, const char* tag,
   };
   static_assert(arraysize(kLogIdToAndroidLogId) == SYSTEM + 1,
                 "Mismatch in size of kLogIdToAndroidLogId and values in LogId");
-  log_id lg_id = kLogIdToAndroidLogId[id];
+  //log_id lg_id = kLogIdToAndroidLogId[id];
 
   if (priority == ANDROID_LOG_FATAL) {
-    __android_log_buf_print(lg_id, priority, tag, "%s:%u] %s", file, line,
-                            message);
+    //__android_log_buf_print(lg_id, priority, tag, "%s:%u] %s", file, line,
+                           // message);
   } else {
-    __android_log_buf_print(lg_id, priority, tag, "%s", message);
+    //__android_log_buf_print(lg_id, priority, tag, "%s", message);
   }
 }
 #endif

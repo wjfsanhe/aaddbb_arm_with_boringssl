@@ -36,6 +36,7 @@
 #include <android-base/quick_exit.h>
 #include <android-base/stringprintf.h>
 #include <android-base/strings.h>
+#include <cutils/log.h>
 
 #include "adb.h"
 #include "adb_auth.h"
@@ -560,6 +561,7 @@ void init_transport_registration(void) {
     if (adb_socketpair(s)) {
         fatal_errno("cannot open transport registration socketpair");
     }
+    ALOGD("socketpair: (%d,%d)\n", s[0], s[1]);
     D("socketpair: (%d,%d)", s[0], s[1]);
 
     transport_registration_send = s[0];

@@ -45,6 +45,7 @@
 #include <android-base/quick_exit.h>
 #include <android-base/stringprintf.h>
 #include <android-base/strings.h>
+#include <cutils/log.h>
 
 #include "adb_auth.h"
 #include "adb_io.h"
@@ -353,7 +354,6 @@ static void handle_new_connection(atransport* t, apacket* p) {
         send_auth_request(t);
     }
 #endif
-
     update_transports();
 }
 
@@ -910,6 +910,7 @@ int launch_server(const std::string& socket_spec) {
     // fd[0] will be parent's end, and the child will write on fd[1]
     int fd[2];
     if (pipe(fd)) {
+        ALOGD("pipe failed in launch_server, errno: %d\n", errno);
         fprintf(stderr, "pipe failed in launch_server, errno: %d\n", errno);
         return -1;
     }
@@ -917,7 +918,10 @@ int launch_server(const std::string& socket_spec) {
     std::string path = android::base::GetExecutablePath();
 
     pid_t pid = fork();
-    if (pid < 0) return -1;
+    if (pid < 0) {
+        ALOGD("fork process error, return -1\n");
+        return -1;
+    }
 
     if (pid == 0) {
         // child side of the fork
@@ -925,11 +929,12 @@ int launch_server(const std::string& socket_spec) {
         adb_close(fd[0]);
 
         char reply_fd[30];
-        snprintf(reply_fd, sizeof(reply_fd), "%d", fd[1]);
+        snprintf(reply_fd, sizeof(reply_fd), "%d", fd[1]);//pipe fd for clien and server.
         // child process
         int result = execl(path.c_str(), "adb", "-L", socket_spec.c_str(), "fork-server", "server",
                            "--reply-fd", reply_fd, NULL);
         // this should not return
+        ALOGD("adb: execl returned %d: %s\n", result, strerror(errno));
         fprintf(stderr, "adb: execl returned %d: %s\n", result, strerror(errno));
     } else {
         // parent side of the fork
@@ -940,11 +945,14 @@ int launch_server(const std::string& socket_spec) {
         int saved_errno = errno;
         adb_close(fd[0]);
         if (ret < 0) {
+            ALOGD("could not read ok from ADB Server, errno = %d\n", saved_errno);
             fprintf(stderr, "could not read ok from ADB Server, errno = %d\n", saved_errno);
             return -1;
         }
+        ALOGD("adb_read ret %d , %s\n", ret, temp);
         fprintf(stderr, "adb_read ret %d , %s\n", ret, temp);
         if (ret != 3 || temp[0] != 'O' || temp[1] != 'K' || temp[2] != '\n') {
+            ALOGD("Launcher server failed\n");
             ReportServerStartupFailure(pid);
             return -1;
         }

@@ -40,6 +40,7 @@
 #include <openssl/rsa.h>
 #include <openssl/sha.h>
 
+#include <cutils/log.h>
 #include "adb.h"
 #include "adb_auth.h"
 #include "adb_utils.h"
@@ -387,10 +388,12 @@ static void adb_auth_inotify_update(int fd, unsigned fd_event, void*) {
 }
 
 static void adb_auth_inotify_init(const std::set<std::string>& paths) {
+    ALOGD("adb_auth_inotify_init...\n");
     LOG(INFO) << "adb_auth_inotify_init...";
 
     int infd = inotify_init1(IN_CLOEXEC | IN_NONBLOCK);
     if (infd < 0) {
+        ALOGD("failed to create inotify fd\n");
         PLOG(ERROR) << "failed to create inotify fd";
         return;
     }
@@ -398,11 +401,13 @@ static void adb_auth_inotify_init(const std::set<std::string>& paths) {
     for (const std::string& path : paths) {
         int wd = inotify_add_watch(infd, path.c_str(), IN_CREATE | IN_MOVED_TO);
         if (wd < 0) {
+            ALOGD("failed to inotify_add_watch on path  %s\n", path.c_str());
             PLOG(ERROR) << "failed to inotify_add_watch on path '" << path;
             continue;
         }
 
         g_monitored_paths[wd] = path;
+        ALOGD( "watch descriptor %d registered for %s\n", wd, path.c_str());
         LOG(INFO) << "watch descriptor " << wd << " registered for " << path;
     }
 
@@ -412,9 +417,11 @@ static void adb_auth_inotify_init(const std::set<std::string>& paths) {
 #endif
 
 void adb_auth_init() {
+    ALOGD("adb_auth_init...\n");
     LOG(INFO) << "adb_auth_init...";
 
     if (!get_user_key()) {
+         ALOGD("Failed to get user key\n");
         LOG(ERROR) << "Failed to get user key";
         return;
     }

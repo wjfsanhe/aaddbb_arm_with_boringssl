@@ -396,6 +396,7 @@ LOCAL_STATIC_LIBRARIES_linux := libcutils
 LOCAL_STATIC_LIBRARIES_darwin += libusb
 LOCAL_STATIC_LIBRARIES_linux += libusb
 
+LOCAL_LDLIBS += -llog
 APP_STL := stlport_static
 LOCAL_CXX_STL := libc++_static
 
