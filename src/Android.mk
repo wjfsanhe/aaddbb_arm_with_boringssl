@@ -353,10 +353,10 @@ LOCAL_CFLAGS += \
     -DDONT_USE_LIBUSB \
     -DNOT_HAVE_SA_LEN \
     -DADB_HOST=1 \
-	-I/disk/B/moon/adb/arm64/arm_adb/lib/base/include\
+	-I../lib/base/include\
 	-std=c++11 -O3 \
-	-I/disk/B/moon/adb/arm64/arm_adb/lib/libcutils/include\
-	-I/disk/B/moon/adb/arm64/arm_adb/include \
+	-I../lib/libcutils/include\
+	-I../include \
 	-I../lib/libcrypto_utils/include\
 	-I../mdnsresponder/mDNSShared \
 	-I../boringssl/src/include
